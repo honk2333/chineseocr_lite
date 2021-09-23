@@ -24,6 +24,7 @@ request_time = {}
 now_time = time.strftime("%Y-%m-%d", time.localtime(time.time()))
 from config import max_post_time ,dbnet_max_size,white_ips
 
+from backend import TextFilter
 
 class TrRun(tornado.web.RequestHandler):
     '''
@@ -176,9 +177,21 @@ class TrRun(tornado.web.RequestHandler):
             'time': time_now
         }
         logger.info(json.dumps(log_info, cls=NpEncoder))
+
+        
+        cli = TextFilter.TextFilter()
+        ans = []
+        for j in res:
+            j = j[1][3:] 
+            # print(j)
+            ans.append(j)
+        # print(ans)    
+        filter_result = cli.Filter(" ".join(ans))
+        print(filter_result)
+
         self.finish(json.dumps(
             {'code': 200, 'msg': '成功',
              'data': {'img_detected': 'data:image/jpeg;base64,' + img_detected_b64, 'raw_out': res,
-                      'speed_time': round(time.time() - start_time, 2)}},
+                      'speed_time': round(time.time() - start_time, 2), 'filter_result':filter_result}},
             cls=NpEncoder))
         return
