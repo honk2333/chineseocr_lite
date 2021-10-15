@@ -60,6 +60,7 @@ class TrRun(tornado.web.RequestHandler):
             up_image_type = img_up.content_type
             up_image_name = img_up.filename
             img = Image.open(BytesIO(img_up.body))
+
         elif img_b64 is not None:
             raw_image = base64.b64decode(img_b64.encode('utf8'))
             img = Image.open(BytesIO(raw_image))
@@ -104,6 +105,8 @@ class TrRun(tornado.web.RequestHandler):
         '''
         res = []
         do_det = True
+        
+        # 限制ip
         remote_ip_now = self.request.remote_ip
         if remote_ip_now not in request_time :
             request_time[remote_ip_now] = 1 
@@ -112,6 +115,10 @@ class TrRun(tornado.web.RequestHandler):
             do_det = False
         else:
             request_time[remote_ip_now] += 1
+
+        if compress_size == '0':
+            # print(min(img.size[0], img.size[1]))
+            compress_size = min(img.size[0], img.size[1])
 
         if compress_size is not None:
             try:
@@ -128,8 +135,9 @@ class TrRun(tornado.web.RequestHandler):
                 res.append("短边尺寸过小，请调整短边尺寸")
                 do_det = False
 
-            short_size = 32 * (short_size//32)
+            short_size = 32 * ((short_size * 2)//32)
 
+        print(short_size)
 
         img_w, img_h = img.size
         if max(img_w, img_h) * (short_size * 1.0 / min(img_w, img_h)) > dbnet_max_size:
@@ -139,11 +147,8 @@ class TrRun(tornado.web.RequestHandler):
             # self.finish(json.dumps({'code': 400, 'msg': '图片reize后长边过长，请调整短边尺寸'}, cls=NpEncoder))
             # return
 
-
         if do_det:
-
-            res = ocrhandle.text_predict(img,short_size)
-
+            res = ocrhandle.text_predict(img, short_size)
             img_detected = img.copy()
             img_draw = ImageDraw.Draw(img_detected)
             colors = ['red', 'green', 'blue', "purple"]

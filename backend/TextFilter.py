@@ -48,7 +48,7 @@ class CLI(cmd.Cmd):
         res = re.findall(my_re, line)
         # 如果包含字母，进一步检测是否有违规拼音
         if len(res) != 0:
-            detected = [i for i in self.words if "".join(pypinyin.lazy_pinyin(i)) in line.lower()]
+            detected = [i for i in self.words if len(i) > 1 and "".join(pypinyin.lazy_pinyin(i)) in line.lower()]
             if any(detected):
                 print('和谐，检测到违规词为：{}'.format(" ".join(detected)))
                 return
@@ -93,7 +93,7 @@ class TextFilter():
         res = re.findall(my_re, line)
         # 如果包含字母，进一步检测是否有违规拼音
         if len(res) != 0:
-            detected = [i for i in self.words if "".join(pypinyin.lazy_pinyin(i)) in line.lower()]
+            detected = [i for i in self.words if len(i) > 1 and "".join(pypinyin.lazy_pinyin(i)) in line.lower()]
             if any(detected):
                 res = '和谐，检测到违规词为：{}'.format(" ".join(detected))
                 return res
